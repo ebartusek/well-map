@@ -18,8 +18,9 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install dependencies
-        run: pip install pandas
+      - - name: Install dependencies
+        run: pip install pandas requests
+
 
       - name: Run converter script
         run: python script/convert_rrc_to_geojson.py
