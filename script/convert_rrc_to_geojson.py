@@ -1,23 +1,36 @@
 import pandas as pd
 import json
 import requests
+import zipfile
+import os
 
-# Download the latest RRC Drilling Permits file
+# Download RRC Drilling Permits ZIP
 url = "https://www.rrc.texas.gov/media/vcydow4v/drillingpermitscurrentyear.zip"
-csv_filename = "drillingpermits.csv"
+zip_path = "permits.zip"
+csv_name = "drillingpermitscurrentyear.csv"
 
+print("Downloading ZIP...")
 r = requests.get(url)
-with open("permits.zip", "wb") as f:
+if r.status_code != 200:
+    raise Exception(f"Failed to download file. Status code: {r.status_code}")
+
+with open(zip_path, "wb") as f:
     f.write(r.content)
 
-import zipfile
-with zipfile.ZipFile("permits.zip", "r") as zip_ref:
+print("Extracting ZIP...")
+with zipfile.ZipFile(zip_path, "r") as zip_ref:
     zip_ref.extractall(".")
 
-df = pd.read_csv(csv_filename)
+if not os.path.exists(csv_name):
+    raise FileNotFoundError(f"Expected file {csv_name} not found after unzip.")
+
+print("Loading data...")
+df = pd.read_csv(csv_name)
 
 df = df.dropna(subset=["Latitude", "Longitude"])
 df = df[df["Latitude"].between(25, 37) & df["Longitude"].between(-107, -93)]
+
+print(f"Found {len(df)} valid wells with coordinates.")
 
 features = []
 for _, row in df.iterrows():
@@ -39,5 +52,8 @@ geojson = {
     "features": features
 }
 
+print("Writing wells.geojson...")
 with open("wells.geojson", "w") as f:
     json.dump(geojson, f, indent=2)
+
+print("Done.")
