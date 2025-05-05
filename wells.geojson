@@ -1,0 +1,30 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "api": "12345678",
+          "operator": "Sample Operator",
+          "well_name": "Test Well #1"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [-100.0, 31.5]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "api": "87654321",
+          "operator": "Another Operator",
+          "well_name": "Test Well #2"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [-99.7, 31.7]
+        }
+      }
+    ]
+  }
+  
