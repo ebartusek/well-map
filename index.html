@@ -89,8 +89,8 @@
 
     let wellLayer;
 
-    // Load and render well data
-    fetch('wells.json')
+    // Load external GeoJSON data from GitHub
+    fetch('wells.geojson')
       .then(res => res.json())
       .then(data => {
         wellLayer = L.geoJSON(data, {
@@ -110,6 +110,8 @@
     const searchInput = document.getElementById('search');
     searchInput.addEventListener('input', () => {
       const query = searchInput.value.toLowerCase();
+      if (!wellLayer) return;
+
       wellLayer.eachLayer(layer => {
         const match = layer.featureOperator.includes(query);
         if (match) {
