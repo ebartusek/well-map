@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Texas Well Finder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+      background-color: #0e0e10;
+      font-family: 'Inter', sans-serif;
+      color: #e0e0e0;
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: #1c1c1e;
+      color: #e0e0e0;
+      font-size: 14px;
+    }
+
+    .leaflet-popup-tip {
+      background: #1c1c1e;
+    }
+
+    #sidebar {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(30, 30, 32, 0.95);
+      padding: 16px;
+      border-radius: 8px;
+      width: 250px;
+      z-index: 1000;
+      box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    }
+
+    #sidebar h2 {
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: #ffffff;
+    }
+
+    #sidebar label {
+      font-size: 13px;
+      display: block;
+      margin-top: 10px;
+    }
+
+    #sidebar input {
+      width: 100%;
+      padding: 6px;
+      background: #222;
+      border: none;
+      color: #fff;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar Panel -->
+  <div id="sidebar">
+    <h2>Texas Well Finder</h2>
+    <label for="search">Search by Operator</label>
+    <input type="text" id="search" placeholder="e.g. Apache" />
+  </div>
+
+  <!-- Map Container -->
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <script>
+    // Initialize map
+    const map = L.map('map').setView([31.9686, -99.9018], 6); // Centered on Texas
+
+    // Add dark tile layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 18
+    }).addTo(map);
+
+    let wellLayer;
+
+    // Load and render well data
+    fetch('wells.json')
+      .then(res => res.json())
+      .then(data => {
+        wellLayer = L.geoJSON(data, {
+          onEachFeature: (feature, layer) => {
+            const { api, operator, well_name } = feature.properties;
+            layer.bindPopup(`
+              <strong>${well_name}</strong><br/>
+              API: ${api}<br/>
+              Operator: ${operator}
+            `);
+            layer.featureOperator = operator.toLowerCase(); // Save for filtering
+          }
+        }).addTo(map);
+      });
+
+    // Simple client-side filter (wired to sidebar input)
+    const searchInput = document.getElementById('search');
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.toLowerCase();
+      wellLayer.eachLayer(layer => {
+        const match = layer.featureOperator.includes(query);
+        if (match) {
+          layer.setStyle({ opacity: 1, fillOpacity: 1 });
+          layer.addTo(map);
+        } else {
+          map.removeLayer(layer);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
